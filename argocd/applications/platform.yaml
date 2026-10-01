@@ -1,0 +1,37 @@
+# Child application for platform service.
+# This application points to Kubernetes manifests under clusters/dev/platform.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: moment-forever-platform-dev
+  namespace: argocd
+  annotations:
+    # Argo CD Image Updater watches this image and can update tag automatically.
+    argocd-image-updater.argoproj.io/image-list: platform=groote123/moment-forever-platform
+    # Only allow commit SHA style tags (40 hex chars) so releases stay immutable.
+    argocd-image-updater.argoproj.io/platform.allow-tags: regexp:^[a-f0-9]{40}$
+    # Use latest/newest matching SHA tag available in registry.
+    argocd-image-updater.argoproj.io/platform.update-strategy: latest
+    # Write updates back to Git (GitOps) instead of only in-memory parameter override.
+    argocd-image-updater.argoproj.io/write-back-method: git
+    # Update kustomization file under this path.
+    argocd-image-updater.argoproj.io/write-back-target: kustomization:clusters/dev/platform
+spec:
+  # project applies AppProject security and policy constraints.
+  project: moment-forever
+  source:
+    # This is the infra repo Argo reads as source of truth.
+    repoURL: "https://github.com/groote123/moment-forever-infra.git"
+    targetRevision: main
+    # This path points only to platform manifests for dev environment.
+    path: clusters/dev/platform
+  destination:
+    # Deploy into in-cluster API server and dev namespace.
+    server: https://kubernetes.default.svc
+    namespace: moment-forever-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

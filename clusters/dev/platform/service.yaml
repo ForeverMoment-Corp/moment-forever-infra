@@ -1,0 +1,20 @@
+# Cluster-internal service for platform pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform
+  namespace: moment-forever-dev
+  labels:
+    app: platform
+spec:
+  # selector chooses which pods receive traffic for this service.
+  selector:
+    app: platform
+  ports:
+    - name: http
+      # service port is how other pods call this service inside cluster.
+      port: 80
+      # targetPort is container port exposed by the pod.
+      targetPort: 8080
+  # ClusterIP means internal-only service (not exposed to internet).
+  type: ClusterIP

@@ -1,0 +1,31 @@
+# This is the "App of Apps" root.
+# Argo CD watches this one Application and creates child applications from argocd/applications/.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: moment-forever-root
+  namespace: argocd
+spec:
+  # project links this Application to rules in app-project.yaml.
+  project: moment-forever
+  source:
+    # Replace this URL if your infra repository URL is different.
+    repoURL: "https://github.com/groote123/moment-forever-infra.git"
+    # targetRevision can be branch, tag, or commit SHA.
+    targetRevision: main
+    # This path contains child Application manifests (app-of-apps pattern).
+    path: argocd/applications
+  destination:
+    # Root app itself lives in argocd namespace because it manages Argo objects.
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      # prune removes resources that were deleted from Git.
+      prune: true
+      # selfHeal forces live cluster state back to Git desired state.
+      selfHeal: true
+    syncOptions:
+      # CreateNamespace helps when destination namespace does not exist.
+      # Root app deploys into argocd namespace, so this is mostly harmless.
+      - CreateNamespace=true

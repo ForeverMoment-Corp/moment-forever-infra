@@ -1,0 +1,7 @@
+# Namespace for all Moment Forever services in dev environment.
+# Namespaces isolate resources and make cleanup easier.
+# Example cleanup: deleting this namespace removes all service resources in dev.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moment-forever-dev

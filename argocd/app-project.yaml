@@ -1,0 +1,35 @@
+# Argo CD AppProject groups and secures all Moment Forever CD applications.
+# Think of this as a policy boundary for what these apps are allowed to touch.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: moment-forever
+  namespace: argocd
+spec:
+  description: Project boundary for Moment Forever services in dev environment.
+
+  # sourceRepos controls which Git repositories applications in this project can use.
+  # Keep this as strict as possible in production.
+  sourceRepos:
+    - "https://github.com/groote123/moment-forever-infra.git"
+
+  # destinations controls where apps can deploy.
+  # Here we allow deployment to the in-cluster API server and one namespace.
+  # server: https://kubernetes.default.svc means "the same cluster where Argo CD is running".
+  destinations:
+    - namespace: moment-forever-dev
+      server: https://kubernetes.default.svc
+
+  # clusterResourceWhitelist allows cluster-scoped objects if needed.
+  # We allow Namespace only because dev namespace manifest is part of this repo.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # namespaceResourceWhitelist allows namespaced resources managed by this project.
+  # Add more kinds later only when needed (principle of least privilege).
+  namespaceResourceWhitelist:
+    - group: apps
+      kind: Deployment
+    - group: ""
+      kind: Service

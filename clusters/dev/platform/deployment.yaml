@@ -1,0 +1,51 @@
+# Platform deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform
+  namespace: moment-forever-dev
+  labels:
+    app: platform
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: platform
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      containers:
+        - name: platform
+          # Kustomize image transform keeps this image aligned with kustomization.yaml tag.
+          image: groote123/moment-forever-platform:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            # Adjust if your Spring Boot container listens on a different internal port.
+            - containerPort: 8080
+          env:
+            # Add environment variables here as you externalize config and secrets.
+            # For sensitive values, use Kubernetes Secret references instead of plain values.
+            # Example:
+            # - name: SPRING_PROFILES_ACTIVE
+            #   value: dev
+            []
+          readinessProbe:
+            # Replace endpoint if actuator path differs in your app.
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20

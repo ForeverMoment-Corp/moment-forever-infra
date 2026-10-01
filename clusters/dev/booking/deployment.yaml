@@ -1,0 +1,44 @@
+# Booking deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking
+  namespace: moment-forever-dev
+  labels:
+    app: booking
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: booking
+  template:
+    metadata:
+      labels:
+        app: booking
+    spec:
+      containers:
+        - name: booking
+          image: groote123/moment-forever-booking:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            # For sensitive values, use Kubernetes Secret references instead of plain values.
+            []
+          readinessProbe:
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20

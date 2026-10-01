@@ -1,0 +1,31 @@
+# Child application for payment service.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: moment-forever-payment-dev
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: payment=groote123/moment-forever-payment
+    argocd-image-updater.argoproj.io/payment.allow-tags: regexp:^[a-f0-9]{40}$
+    argocd-image-updater.argoproj.io/payment.update-strategy: latest
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-target: kustomization:clusters/dev/payment
+spec:
+  # project applies AppProject security and policy constraints.
+  project: moment-forever
+  source:
+    # This is the infra repo Argo reads as source of truth.
+    repoURL: "https://github.com/groote123/moment-forever-infra.git"
+    targetRevision: main
+    # This path points only to payment manifests for dev environment.
+    path: clusters/dev/payment
+  destination:
+    # Deploy into in-cluster API server and dev namespace.
+    server: https://kubernetes.default.svc
+    namespace: moment-forever-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
