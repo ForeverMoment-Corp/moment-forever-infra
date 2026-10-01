@@ -12,3 +12,4 @@ resources:
 images:
   - name: groote123/moment-forever-gateway
     newTag: latest
+
