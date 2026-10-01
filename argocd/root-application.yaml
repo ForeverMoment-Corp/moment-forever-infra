@@ -10,7 +10,7 @@ spec:
   project: moment-forever
   source:
     # Replace this URL if your infra repository URL is different.
-    repoURL: "https://github.com/groote123/moment-forever-infra.git"
+    repoURL: "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
     # targetRevision can be branch, tag, or commit SHA.
     targetRevision: main
     # This path contains child Application manifests (app-of-apps pattern).

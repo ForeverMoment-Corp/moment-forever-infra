@@ -11,7 +11,7 @@ spec:
   # sourceRepos controls which Git repositories applications in this project can use.
   # Keep this as strict as possible in production.
   sourceRepos:
-    - "https://github.com/groote123/moment-forever-infra.git"
+    - "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
 
   # destinations controls where apps can deploy.
   # Here we allow deployment to the in-cluster API server and one namespace.

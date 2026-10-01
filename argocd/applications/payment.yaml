@@ -15,7 +15,7 @@ spec:
   project: moment-forever
   source:
     # This is the infra repo Argo reads as source of truth.
-    repoURL: "https://github.com/groote123/moment-forever-infra.git"
+    repoURL: "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
     targetRevision: main
     # This path points only to payment manifests for dev environment.
     path: clusters/dev/payment
