@@ -11,7 +11,8 @@ metadata:
     # Only allow commit SHA style tags (40 hex chars) so releases stay immutable.
     argocd-image-updater.argoproj.io/platform.allow-tags: regexp:^[a-f0-9]{40}$
     # Use latest/newest matching SHA tag available in registry.
-    argocd-image-updater.argoproj.io/platform.update-strategy: latest
+    argocd-image-updater.argoproj.io/platform.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/platform.force-update: "true"
     # Write updates back to Git (GitOps) instead of only in-memory parameter override.
     argocd-image-updater.argoproj.io/write-back-method: git
     # Write back to the app's own source path (clusters/dev/platform).

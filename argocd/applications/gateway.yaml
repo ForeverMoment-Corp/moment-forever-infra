@@ -7,20 +7,17 @@ metadata:
   annotations:
     argocd-image-updater.argoproj.io/image-list: gateway=groote123/moment-forever-gateway
     argocd-image-updater.argoproj.io/gateway.allow-tags: regexp:^[a-f0-9]{40}$
-    argocd-image-updater.argoproj.io/gateway.update-strategy: latest
+    argocd-image-updater.argoproj.io/gateway.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/gateway.force-update: "true"
     argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/write-back-target: kustomization:clusters/dev/gateway
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
 spec:
-  # project applies AppProject security and policy constraints.
   project: moment-forever
   source:
-    # This is the infra repo Argo reads as source of truth.
     repoURL: "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
     targetRevision: main
-    # This path points only to gateway manifests for dev environment.
     path: clusters/dev/gateway
   destination:
-    # Deploy into in-cluster API server and dev namespace.
     server: https://kubernetes.default.svc
     namespace: moment-forever-dev
   syncPolicy:

@@ -7,9 +7,14 @@ metadata:
   annotations:
     argocd-image-updater.argoproj.io/image-list: booking=groote123/moment-forever-booking
     argocd-image-updater.argoproj.io/booking.allow-tags: regexp:^[a-f0-9]{40}$
-    argocd-image-updater.argoproj.io/booking.update-strategy: latest
+    argocd-image-updater.argoproj.io/booking.update-strategy: newest-build
+    # Force Image Updater to check Docker Hub regardless of whether the image
+    # appears in status.summary.images (which is empty when pods are crashing).
+    argocd-image-updater.argoproj.io/booking.force-update: "true"
     argocd-image-updater.argoproj.io/write-back-method: git
-    argocd-image-updater.argoproj.io/write-back-target: kustomization:clusters/dev/booking
+    # Do NOT add a sub-path here — Image Updater appends the target to the
+    # cloned source path, which would double it to clusters/dev/booking/clusters/dev/booking.
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
 spec:
   # project applies AppProject security and policy constraints.
   project: moment-forever
