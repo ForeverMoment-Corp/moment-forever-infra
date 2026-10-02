@@ -14,8 +14,10 @@ metadata:
     argocd-image-updater.argoproj.io/platform.update-strategy: latest
     # Write updates back to Git (GitOps) instead of only in-memory parameter override.
     argocd-image-updater.argoproj.io/write-back-method: git
-    # Update kustomization file under this path.
-    argocd-image-updater.argoproj.io/write-back-target: kustomization:clusters/dev/platform
+    # Write back to the app's own source path (clusters/dev/platform).
+    # Do NOT specify a sub-path here — Image Updater appends the target to the
+    # cloned source path, which would double it to clusters/dev/platform/clusters/dev/platform.
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
 spec:
   # project applies AppProject security and policy constraints.
   project: moment-forever
