@@ -19,6 +19,7 @@ metadata:
     # Do NOT specify a sub-path here — Image Updater appends the target to the
     # cloned source path, which would double it to clusters/dev/platform/clusters/dev/platform.
     argocd-image-updater.argoproj.io/write-back-target: kustomization
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   # project applies AppProject security and policy constraints.
   project: moment-forever

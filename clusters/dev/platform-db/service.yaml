@@ -1,0 +1,16 @@
+# Cluster-internal service that gives Postgres a DNS name: postgres-platform.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-platform
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-platform
+spec:
+  selector:
+    app: postgres-platform
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

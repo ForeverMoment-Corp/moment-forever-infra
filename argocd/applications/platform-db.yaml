@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: moment-forever-platform-db-dev
+  namespace: argocd
+  annotations:
+    # Deploy BEFORE the platform app (lower wave runs first).
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: moment-forever
+  source:
+    repoURL: "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
+    targetRevision: main
+    path: clusters/dev/platform-db
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: moment-forever-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

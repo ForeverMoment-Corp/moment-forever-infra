@@ -1,0 +1,46 @@
+# Single-instance PostgreSQL for the platform service in dev.
+# StatefulSet is the right resource for databases (stable name + storage).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-platform
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-platform
+spec:
+  serviceName: postgres-platform
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-platform
+  template:
+    metadata:
+      labels:
+        app: postgres-platform
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          env:
+            # These match what your platform-secret.yaml already uses.
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: groote
+            - name: POSTGRES_DB
+              value: platformdb
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+  # Persistent storage so data survives pod restarts.
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
