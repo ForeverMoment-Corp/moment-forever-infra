@@ -32,5 +32,9 @@ spec:
       kind: Deployment
     - group: ""
       kind: Service
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
     - group: argoproj.io
       kind: Application
