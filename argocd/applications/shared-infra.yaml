@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: moment-forever-shared-infra-dev
+  namespace: argocd
+  annotations:
+    # Lowest wave so it deploys before everything else.
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  project: moment-forever
+  source:
+    repoURL: "https://github.com/ForeverMoment-Corp/moment-forever-infra.git"
+    targetRevision: main
+    path: clusters/dev/shared-infra
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: moment-forever-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

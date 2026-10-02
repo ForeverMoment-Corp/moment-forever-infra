@@ -1,0 +1,43 @@
+# Consul in dev mode: single node, in-memory, no persistence.
+# Good enough for learning. Real environments use 3-5 node clusters.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+  namespace: moment-forever-dev
+  labels:
+    app: consul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.17
+          args:
+            - agent
+            - -dev
+            - -client=0.0.0.0
+          ports:
+            - containerPort: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+  namespace: moment-forever-dev
+  labels:
+    app: consul
+spec:
+  selector:
+    app: consul
+  ports:
+    - name: http
+      port: 8500
+      targetPort: 8500
