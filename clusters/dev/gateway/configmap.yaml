@@ -1,0 +1,8 @@
+# Non-sensitive runtime configuration for API gateway service.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul

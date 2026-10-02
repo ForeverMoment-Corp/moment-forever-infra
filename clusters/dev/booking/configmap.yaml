@@ -1,0 +1,13 @@
+# Non-sensitive runtime configuration for booking service.
+# Values are aligned with docker-compose service host names.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+  POSTGRES_HOST: postgres-booking
+  MONGO_HOST: mongo-booking
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata

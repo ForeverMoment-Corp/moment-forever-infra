@@ -27,13 +27,13 @@ spec:
           ports:
             # Adjust if your Spring Boot container listens on a different internal port.
             - containerPort: 8080
-          env:
-            # Add environment variables here as you externalize config and secrets.
-            # For sensitive values, use Kubernetes Secret references instead of plain values.
-            # Example:
-            # - name: SPRING_PROFILES_ACTIVE
-            #   value: dev
-            []
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: platform-config
+            # Load sensitive values (db password, jwt secret) from Secret.
+            - secretRef:
+                name: platform-secret
           readinessProbe:
             # Replace endpoint if actuator path differs in your app.
             # Readiness says "can this pod receive traffic now?"

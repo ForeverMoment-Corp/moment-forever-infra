@@ -25,9 +25,13 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
-          env:
-            # For sensitive values, use Kubernetes Secret references instead of plain values.
-            []
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: booking-config
+            # Load sensitive values (db password) from Secret.
+            - secretRef:
+                name: booking-secret
           readinessProbe:
             # Readiness says "can this pod receive traffic now?"
             httpGet:

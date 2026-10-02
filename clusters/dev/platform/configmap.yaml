@@ -1,0 +1,14 @@
+# Non-sensitive runtime configuration for platform service.
+# Values are aligned with docker-compose service host names.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+  POSTGRES_HOST: postgres-platform
+  MONGO_HOST: mongo-booking
+  REDIS_HOST: redis
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata

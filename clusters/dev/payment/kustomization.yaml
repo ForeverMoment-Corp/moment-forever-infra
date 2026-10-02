@@ -4,6 +4,8 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  - configmap.yaml
+  - secret.yaml
   - deployment.yaml
   - service.yaml
 
@@ -12,4 +14,3 @@ resources:
 images:
   - name: groote123/moment-forever-payment
     newTag: 7b0ce0fa8f040f719354a813480f0110b00959e7
-

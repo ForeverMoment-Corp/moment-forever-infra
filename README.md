@@ -103,3 +103,4 @@ This is the clean CI->CD handoff:
 - `doc/ARGOCD-KUBERNETES-BASICS.md`
 - `doc/LOCAL-CD-SETUP-GUIDE.md`
 - `doc/DEVOPS-TERMINOLOGY-GLOSSARY.md`
+- `doc/KUBERNETES-ARGOCD-DEEP-DIVE-RUNBOOK.md` (in-depth commands + debugging)
