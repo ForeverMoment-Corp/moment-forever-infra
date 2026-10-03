@@ -24,7 +24,7 @@ spec:
           # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 8082
           # Load non-sensitive configuration values from ConfigMap.
           envFrom:
             - configMapRef:
@@ -36,13 +36,13 @@ spec:
             # Readiness says "can this pod receive traffic now?"
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8082
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             # Liveness says "is this pod alive, or should Kubernetes restart it?"
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8082
             initialDelaySeconds: 30
             periodSeconds: 20

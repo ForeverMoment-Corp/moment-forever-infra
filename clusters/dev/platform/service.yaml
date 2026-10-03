@@ -15,6 +15,6 @@ spec:
       # service port is how other pods call this service inside cluster.
       port: 80
       # targetPort is container port exposed by the pod.
-      targetPort: 8080
+      targetPort: 8081
   # ClusterIP means internal-only service (not exposed to internet).
   type: ClusterIP
