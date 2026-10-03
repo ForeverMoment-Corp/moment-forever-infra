@@ -11,3 +11,4 @@ data:
   MONGO_HOST: mongo-booking
   SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
   JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+  MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"

@@ -35,14 +35,14 @@ spec:
           readinessProbe:
             # Readiness says "can this pod receive traffic now?"
             httpGet:
-              path: /actuator/health
+              path: /booking/actuator/health
               port: 8082
             initialDelaySeconds: 20
             periodSeconds: 10
           livenessProbe:
             # Liveness says "is this pod alive, or should Kubernetes restart it?"
             httpGet:
-              path: /actuator/health
+              path: /booking/actuator/health
               port: 8082
             initialDelaySeconds: 30
             periodSeconds: 20
