@@ -14,3 +14,4 @@ data:
   JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
   # Tell Spring Boot to auto-create Quartz scheduler tables on startup.
   SPRING_QUARTZ_JDBC_INITIALIZE_SCHEMA: always
+  MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"
