@@ -12,3 +12,5 @@ data:
   REDIS_HOST: redis
   SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
   JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+  # Tell Spring Boot to auto-create Quartz scheduler tables on startup.
+  SPRING_QUARTZ_JDBC_INITIALIZE_SCHEMA: always
