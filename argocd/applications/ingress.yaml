@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"   # sync before the services
+spec:
+  project: moment-forever
+  source:
+    repoURL: https://github.com/ForeverMoment-Corp/moment-forever-infra
+    targetRevision: main
+    path: clusters/dev/ingress
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: moment-forever-dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

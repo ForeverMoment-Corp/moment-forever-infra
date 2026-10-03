@@ -1,0 +1,998 @@
+﻿
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking\configmap.yaml =====
+
+# Non-sensitive runtime configuration for booking service.
+# Values are aligned with docker-compose service host names.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: booking-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+  POSTGRES_HOST: postgres-booking
+  MONGO_HOST: mongo-booking
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+  MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking\deployment.yaml =====
+
+# Booking deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: booking
+  namespace: moment-forever-dev
+  labels:
+    app: booking
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: booking
+  template:
+    metadata:
+      labels:
+        app: booking
+    spec:
+      containers:
+        - name: booking
+          image: groote123/moment-forever-booking:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8082
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: booking-config
+            # Load sensitive values (db password) from Secret.
+            - secretRef:
+                name: booking-secret
+          readinessProbe:
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /booking/actuator/health
+              port: 8082
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /booking/actuator/health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking\kustomization.yaml =====
+
+# Kustomization groups the booking Kubernetes resources for dev.
+# Argo CD renders this folder through Kustomize before applying to cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
+# Image updater edits newTag below to move deployments to new commit SHA.
+# Keep `name` exactly equal to image name used in deployment manifests.
+images:
+- name: groote123/moment-forever-booking
+  newTag: aea3ee2e9a37deb484c97f07ab8942755f7f3515
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking\secret.yaml =====
+
+# Sensitive runtime configuration for booking service.
+# Replace placeholder values before production use.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: booking-secret
+  namespace: moment-forever-dev
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: groote
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking\service.yaml =====
+
+# Cluster-internal service for booking pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: booking
+  namespace: moment-forever-dev
+  labels:
+    app: booking
+spec:
+  # selector chooses which pods receive traffic for this service.
+  selector:
+    app: booking
+  ports:
+    - name: http
+      # service port is how other pods call this service inside cluster.
+      port: 80
+      # targetPort is container port exposed by the pod.
+      targetPort: 8082
+  # ClusterIP means internal-only service (not exposed to internet).
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking-db\kustomization.yaml =====
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - statefulset.yaml
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\booking-db\statefulset.yaml =====
+
+# Single-instance PostgreSQL for the booking service in dev.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-booking
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-booking
+spec:
+  serviceName: postgres-booking
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-booking
+  template:
+    metadata:
+      labels:
+        app: postgres-booking
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: groote
+            - name: POSTGRES_DB
+              value: moment_forever_book
+            - name: TZ
+              value: Asia/Kolkata
+            - name: PGTZ
+              value: Asia/Kolkata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-booking
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-booking
+spec:
+  selector:
+    app: postgres-booking
+  ports:
+    - name: postgres
+      port: 5433
+      targetPort: 5432
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\gateway\configmap.yaml =====
+
+# Non-sensitive runtime configuration for API gateway service.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\gateway\deployment.yaml =====
+
+# Gateway deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: moment-forever-dev
+  labels:
+    app: gateway
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: groote123/moment-forever-gateway:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8086
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: gateway-config
+            # Load sensitive values (jwt secret) from Secret.
+            - secretRef:
+                name: gateway-secret
+          readinessProbe:
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /actuator/health
+              port: 8086
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /actuator/health
+              port: 8086
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\gateway\kustomization.yaml =====
+
+# Kustomization groups the gateway Kubernetes resources for dev.
+# Argo CD renders this folder through Kustomize before applying to cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
+# Image updater edits newTag below to move deployments to new commit SHA.
+# Keep `name` exactly equal to image name used in deployment manifests.
+images:
+- name: groote123/moment-forever-gateway
+  newTag: 8da9750174a39db92858316e92ce21166d8e6e2d
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\gateway\secret.yaml =====
+
+# Sensitive runtime configuration for API gateway service.
+# Replace placeholder values before production use.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gateway-secret
+  namespace: moment-forever-dev
+type: Opaque
+stringData:
+  JWT_SECRET: change-me-gateway-jwt-secret-at-least-32-chars
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\gateway\service.yaml =====
+
+# Cluster-internal service for gateway pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: moment-forever-dev
+  labels:
+    app: gateway
+spec:
+  # selector chooses which pods receive traffic for this service.
+  selector:
+    app: gateway
+  ports:
+    - name: http
+      # service port is how other pods call this service inside cluster.
+      port: 80
+      # targetPort is container port exposed by the pod.
+      targetPort: 8086
+  # ClusterIP means internal-only service (not exposed to internet).
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment\configmap.yaml =====
+
+# Non-sensitive runtime configuration for payment service.
+# Values are aligned with docker-compose service host names.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+  POSTGRES_HOST: postgres-payment
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+  MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment\deployment.yaml =====
+
+# Payment deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: moment-forever-dev
+  labels:
+    app: payment
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+        - name: payment
+          image: groote123/moment-forever-payment:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8083
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: payment-config
+            # Load sensitive values (db password, optional gateway keys) from Secret.
+            - secretRef:
+                name: payment-secret
+          readinessProbe:
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /payment/actuator/health
+              port: 8083
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /payment/actuator/health
+              port: 8083
+            initialDelaySeconds: 30
+            periodSeconds: 20
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment\kustomization.yaml =====
+
+# Kustomization groups the payment Kubernetes resources for dev.
+# Argo CD renders this folder through Kustomize before applying to cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
+# Image updater edits newTag below to move deployments to new commit SHA.
+# Keep `name` exactly equal to image name used in deployment manifests.
+images:
+- name: groote123/moment-forever-payment
+  newTag: ef287b6054670a6113543fdc5a6fd91a99bd61ad
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment\secret.yaml =====
+
+# Sensitive runtime configuration for payment service.
+# Replace placeholder values before production use.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: payment-secret
+  namespace: moment-forever-dev
+type: Opaque
+stringData:
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: groote
+  # Optional integration values; keep empty until you integrate external gateway.
+  PAYMENT_GATEWAY_API_KEY: ""
+  PAYMENT_GATEWAY_WEBHOOK_SECRET: ""
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment\service.yaml =====
+
+# Cluster-internal service for payment pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: moment-forever-dev
+  labels:
+    app: payment
+spec:
+  # selector chooses which pods receive traffic for this service.
+  selector:
+    app: payment
+  ports:
+    - name: http
+      # service port is how other pods call this service inside cluster.
+      port: 80
+      # targetPort is container port exposed by the pod.
+      targetPort: 8083
+  # ClusterIP means internal-only service (not exposed to internet).
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment-db\kustomization.yaml =====
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - statefulset.yaml
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\payment-db\statefulset.yaml =====
+
+# Single-instance PostgreSQL for the payment service in dev.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-payment
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-payment
+spec:
+  serviceName: postgres-payment
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-payment
+  template:
+    metadata:
+      labels:
+        app: postgres-payment
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: groote
+            - name: POSTGRES_DB
+              value: moment_forever_payment
+            - name: TZ
+              value: Asia/Kolkata
+            - name: PGTZ
+              value: Asia/Kolkata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-payment
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-payment
+spec:
+  selector:
+    app: postgres-payment
+  ports:
+    - name: postgres
+      port: 5434
+      targetPort: 5432
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform\configmap.yaml =====
+
+# Non-sensitive runtime configuration for platform service.
+# Values are aligned with docker-compose service host names.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: platform-config
+  namespace: moment-forever-dev
+data:
+  CONSUL_HOST: consul
+  POSTGRES_HOST: postgres-platform
+  MONGO_HOST: mongo-booking
+  REDIS_HOST: redis
+  SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
+  # Tell Spring Boot to auto-create Quartz scheduler tables on startup.
+  SPRING_QUARTZ_JDBC_INITIALIZE_SCHEMA: always
+  MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform\deployment.yaml =====
+
+# Platform deployment in dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform
+  namespace: moment-forever-dev
+  labels:
+    app: platform
+spec:
+  # replicas controls how many pod copies run at the same time.
+  replicas: 1
+  selector:
+    # selector must match pod template labels exactly.
+    matchLabels:
+      app: platform
+  template:
+    metadata:
+      labels:
+        app: platform
+    spec:
+      containers:
+        - name: platform
+          # Kustomize image transform keeps this image aligned with kustomization.yaml tag.
+          image: groote123/moment-forever-platform:latest
+          # IfNotPresent is fine for dev; production commonly uses Always with immutable tags.
+          imagePullPolicy: IfNotPresent
+          ports:
+            # Adjust if your Spring Boot container listens on a different internal port.
+            - containerPort: 8081
+          # Load non-sensitive configuration values from ConfigMap.
+          envFrom:
+            - configMapRef:
+                name: platform-config
+            # Load sensitive values (db password, jwt secret) from Secret.
+            - secretRef:
+                name: platform-secret
+          readinessProbe:
+            # Replace endpoint if actuator path differs in your app.
+            # Readiness says "can this pod receive traffic now?"
+            httpGet:
+              path: /platform/actuator/health
+              port: 8081
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            # Liveness says "is this pod alive, or should Kubernetes restart it?"
+            httpGet:
+              path: /platform/actuator/health
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 30
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform\kustomization.yaml =====
+
+# Kustomization groups the platform Kubernetes resources for dev.
+# Argo CD renders this folder through Kustomize before applying to cluster.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
+# Image updater edits newTag below to move deployments to new commit SHA.
+# Keep `name` exactly equal to image name used in deployment manifests.
+images:
+- name: groote123/moment-forever-platform
+  newTag: cb6165040a6fdecab7e14caa0a7f7c1be25472a0
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform\secret.yaml =====
+
+# Sensitive runtime configuration for platform service.
+# Replace placeholder values before production use.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: platform-secret
+  namespace: moment-forever-dev
+type: Opaque
+stringData:
+  # Spring Boot automatically maps these to spring.datasource.username/password.
+  SPRING_DATASOURCE_USERNAME: postgres
+  SPRING_DATASOURCE_PASSWORD: groote
+  # Spring maps JWT_SECRET -> jwt.secret
+  JWT_SECRET: change-me-platform-jwt-secret-at-least-32-chars
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform\service.yaml =====
+
+# Cluster-internal service for platform pods.
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform
+  namespace: moment-forever-dev
+  labels:
+    app: platform
+spec:
+  # selector chooses which pods receive traffic for this service.
+  selector:
+    app: platform
+  ports:
+    - name: http
+      # service port is how other pods call this service inside cluster.
+      port: 80
+      # targetPort is container port exposed by the pod.
+      targetPort: 8081
+  # ClusterIP means internal-only service (not exposed to internet).
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform-db\kustomization.yaml =====
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - statefulset.yaml
+  - service.yaml
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform-db\service.yaml =====
+
+# Cluster-internal service that gives Postgres a DNS name: postgres-platform.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-platform
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-platform
+spec:
+  selector:
+    app: postgres-platform
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\platform-db\statefulset.yaml =====
+
+# Single-instance PostgreSQL for the platform service in dev.
+# StatefulSet is the right resource for databases (stable name + storage).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-platform
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-platform
+spec:
+  serviceName: postgres-platform
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-platform
+  template:
+    metadata:
+      labels:
+        app: postgres-platform
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            # Credentials and DB name match docker-compose postgres-platform exactly.
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: groote
+            - name: POSTGRES_DB
+              value: moment_forever_db
+            - name: TZ
+              value: Asia/Kolkata
+            - name: PGTZ
+              value: Asia/Kolkata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+  # Persistent storage so data survives pod restarts.
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\shared-infra\consul.yaml =====
+
+# Consul in dev mode: single node, in-memory, no persistence.
+# Good enough for learning. Real environments use 3-5 node clusters.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: consul
+  namespace: moment-forever-dev
+  labels:
+    app: consul
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: consul
+  template:
+    metadata:
+      labels:
+        app: consul
+    spec:
+      containers:
+        - name: consul
+          image: hashicorp/consul:1.17
+          args:
+            - agent
+            - -dev
+            - -client=0.0.0.0
+          ports:
+            - containerPort: 8500
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+  namespace: moment-forever-dev
+  labels:
+    app: consul
+spec:
+  selector:
+    app: consul
+  ports:
+    - name: http
+      port: 8500
+      targetPort: 8500
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\shared-infra\kafka.yaml =====
+
+# Single-broker Kafka in KRaft mode (no ZooKeeper needed).
+# Uses StatefulSet with persistent storage so KRaft metadata survives pod restarts.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: moment-forever-dev
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: apache/kafka:3.7.0
+          ports:
+            - containerPort: 29092
+            - containerPort: 9093
+          env:
+            - name: KAFKA_NODE_ID
+              value: "1"
+            - name: KAFKA_PROCESS_ROLES
+              value: "broker,controller"
+            - name: KAFKA_LISTENERS
+              value: "PLAINTEXT://:29092,CONTROLLER://:9093"
+            - name: KAFKA_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka:29092"
+            - name: KAFKA_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+              value: "1@kafka:9093"
+            - name: KAFKA_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+              value: "1"
+            - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+              value: "1"
+            - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+              value: "0"
+            - name: CLUSTER_ID
+              value: "MkU3OEVBNTcwNTJENDM2Qk"
+            # Point Kafka logs to the persistent volume so KRaft metadata survives restarts.
+            - name: KAFKA_LOG_DIRS
+              value: "/var/kafka/data"
+          volumeMounts:
+            - name: data
+              mountPath: /var/kafka/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: moment-forever-dev
+  labels:
+    app: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: kafka
+      port: 29092
+      targetPort: 29092
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\shared-infra\kustomization.yaml =====
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - consul.yaml
+  - redis.yaml
+  - kafka.yaml
+  - mongodb.yaml
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\shared-infra\mongodb.yaml =====
+
+# Single-instance MongoDB for dev. Named mongo-booking because that's what
+# the current configmaps expect. We'll revisit if that turns out to be a typo.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-booking
+  namespace: moment-forever-dev
+  labels:
+    app: mongo-booking
+spec:
+  serviceName: mongo-booking
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo-booking
+  template:
+    metadata:
+      labels:
+        app: mongo-booking
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-booking
+  namespace: moment-forever-dev
+  labels:
+    app: mongo-booking
+spec:
+  selector:
+    app: mongo-booking
+  ports:
+    - name: mongo
+      port: 27017
+      targetPort: 27017
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\shared-infra\redis.yaml =====
+
+# Single-instance Redis for dev.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: moment-forever-dev
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: moment-forever-dev
+  labels:
+    app: redis
+spec:
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+
+
+===== C:\manishshrma\moment-forever-infra\clusters\dev\namespace.yaml =====
+
+# Namespace for all Moment Forever services in dev environment.
+# Namespaces isolate resources and make cleanup easier.
+# Example cleanup: deleting this namespace removes all service resources in dev.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moment-forever-dev
+
