@@ -1,5 +1,5 @@
 # Single-broker Kafka in KRaft mode (no ZooKeeper needed).
-# Uses the official Apache Kafka image.
+# Uses StatefulSet with persistent storage so KRaft metadata survives pod restarts.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -51,6 +51,21 @@ spec:
               value: "0"
             - name: CLUSTER_ID
               value: "MkU3OEVBNTcwNTJENDM2Qk"
+            # Point Kafka logs to the persistent volume so KRaft metadata survives restarts.
+            - name: KAFKA_LOG_DIRS
+              value: "/var/kafka/data"
+          volumeMounts:
+            - name: data
+              mountPath: /var/kafka/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
+
 ---
 apiVersion: v1
 kind: Service
