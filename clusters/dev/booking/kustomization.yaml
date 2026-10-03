@@ -2,15 +2,13 @@
 # Argo CD renders this folder through Kustomize before applying to cluster.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
-  - configmap.yaml
-  - secret.yaml
-  - deployment.yaml
-  - service.yaml
-
+- configmap.yaml
+- secret.yaml
+- deployment.yaml
+- service.yaml
 # Image updater edits newTag below to move deployments to new commit SHA.
 # Keep `name` exactly equal to image name used in deployment manifests.
 images:
-  - name: groote123/moment-forever-booking
-    newTag: 782d11895d41d9db198ebb791e508129d03eb84f
+- name: groote123/moment-forever-booking
+  newTag: aea3ee2e9a37deb484c97f07ab8942755f7f3515
