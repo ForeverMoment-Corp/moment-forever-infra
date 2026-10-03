@@ -1,0 +1,63 @@
+# Single-instance PostgreSQL for the payment service in dev.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-payment
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-payment
+spec:
+  serviceName: postgres-payment
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-payment
+  template:
+    metadata:
+      labels:
+        app: postgres-payment
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              value: groote
+            - name: POSTGRES_DB
+              value: moment_forever_payment
+            - name: TZ
+              value: Asia/Kolkata
+            - name: PGTZ
+              value: Asia/Kolkata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+              subPath: pgdata
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-payment
+  namespace: moment-forever-dev
+  labels:
+    app: postgres-payment
+spec:
+  selector:
+    app: postgres-payment
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+  type: ClusterIP

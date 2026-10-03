@@ -20,17 +20,21 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:16
+          image: postgres:15
           ports:
             - containerPort: 5432
           env:
-            # These match what your platform-secret.yaml already uses.
+            # Credentials and DB name match docker-compose postgres-platform exactly.
             - name: POSTGRES_USER
               value: postgres
             - name: POSTGRES_PASSWORD
               value: groote
             - name: POSTGRES_DB
-              value: platformdb
+              value: moment_forever_db
+            - name: TZ
+              value: Asia/Kolkata
+            - name: PGTZ
+              value: Asia/Kolkata
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
