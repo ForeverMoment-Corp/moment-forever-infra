@@ -42,5 +42,5 @@ spec:
       kind: PersistentVolumeClaim
     - group: argoproj.io
       kind: Application
-       - group: networking.k8s.io
+    - group: networking.k8s.io
       kind: Ingress
