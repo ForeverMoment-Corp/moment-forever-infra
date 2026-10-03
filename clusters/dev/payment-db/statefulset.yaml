@@ -58,6 +58,6 @@ spec:
     app: postgres-payment
   ports:
     - name: postgres
-      port: 5433
+      port: 5434
       targetPort: 5432
   type: ClusterIP
