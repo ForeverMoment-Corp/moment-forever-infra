@@ -38,14 +38,14 @@ spec:
             # Replace endpoint if actuator path differs in your app.
             # Readiness says "can this pod receive traffic now?"
             httpGet:
-              path: /actuator/health
+              path: /platform/actuator/health
               port: 8081
-            initialDelaySeconds: 20
+            initialDelaySeconds: 40
             periodSeconds: 10
           livenessProbe:
             # Liveness says "is this pod alive, or should Kubernetes restart it?"
             httpGet:
-              path: /actuator/health
+              path: /platform/actuator/health
               port: 8081
-            initialDelaySeconds: 30
-            periodSeconds: 20
+            initialDelaySeconds: 60
+            periodSeconds: 30
