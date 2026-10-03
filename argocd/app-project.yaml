@@ -44,3 +44,4 @@ spec:
       kind: Application
     - group: networking.k8s.io
       kind: Ingress
+
