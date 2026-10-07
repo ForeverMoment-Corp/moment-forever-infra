@@ -54,16 +54,27 @@ require_env() {
   done
 }
 
+# Ubuntu LTS versions this bootstrap has been validated against. Add a new
+# entry here (and re-test the scripts) before moving the fleet to a newer
+# Ubuntu LTS release.
+SUPPORTED_UBUNTU_VERSIONS=("22.04" "24.04")
+
 require_ubuntu_2204() {
   if [[ ! -f /etc/os-release ]]; then
-    die "/etc/os-release not found. This bootstrap targets Ubuntu 22.04 LTS."
+    die "/etc/os-release not found. This bootstrap targets Ubuntu LTS (${SUPPORTED_UBUNTU_VERSIONS[*]})."
   fi
 
   # shellcheck disable=SC1091
   source /etc/os-release
-  if [[ "${ID:-}" != "ubuntu" || "${VERSION_ID:-}" != "22.04" ]]; then
-    die "Unsupported OS '${PRETTY_NAME:-unknown}'. Use Ubuntu 22.04 LTS for this bootstrap."
-  fi
+
+  local version
+  for version in "${SUPPORTED_UBUNTU_VERSIONS[@]}"; do
+    if [[ "${ID:-}" == "ubuntu" && "${VERSION_ID:-}" == "$version" ]]; then
+      return 0
+    fi
+  done
+
+  die "Unsupported OS '${PRETTY_NAME:-unknown}'. Use one of Ubuntu ${SUPPORTED_UBUNTU_VERSIONS[*]} LTS for this bootstrap."
 }
 
 resolve_public_ip() {

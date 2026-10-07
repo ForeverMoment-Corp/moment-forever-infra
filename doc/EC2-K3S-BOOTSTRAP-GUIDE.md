@@ -8,7 +8,7 @@ bootstrap/ec2-k3s/
 
 It is written for the **current Moment Forever dev setup**:
 
-- fresh **Ubuntu 22.04 LTS** EC2 machine
+- fresh **Ubuntu 22.04 LTS or 24.04 LTS** EC2 machine
 - **single-node k3s**
 - **NGINX Ingress Controller**
 - **Argo CD**
@@ -82,7 +82,7 @@ Before running the bootstrap:
 
 ### EC2 side
 
-- Ubuntu **22.04 LTS**
+- Ubuntu **22.04 LTS or 24.04 LTS**
 - internet access from the VM
 - enough disk space
 - outbound HTTPS allowed
@@ -218,7 +218,7 @@ This is useful when debugging or rerunning only the failed stage.
 
 Purpose:
 
-- validates Ubuntu 22.04
+- validates Ubuntu 22.04 or 24.04
 - installs required base packages
 - warns if VM is too small
 
@@ -363,7 +363,7 @@ Then rerun only that script after fixing the root cause.
 
 Check:
 
-- are you really on Ubuntu 22.04?
+- are you really on Ubuntu 22.04 or 24.04?
 - does the VM have outbound internet?
 - can `apt-get update` work?
 

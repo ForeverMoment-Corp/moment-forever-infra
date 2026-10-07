@@ -2,7 +2,7 @@
 
 This folder contains the **actual EC2 bootstrap scripts** for the current recommended setup:
 
-- **OS:** Ubuntu 22.04 LTS
+- **OS:** Ubuntu 22.04 LTS or 24.04 LTS
 - **Kubernetes:** single-node **k3s**
 - **Ingress:** NGINX Ingress Controller
 - **GitOps:** Argo CD + Argo CD Image Updater
