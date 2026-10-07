@@ -11,6 +11,9 @@ data:
   MONGO_HOST: mongo-booking
   REDIS_HOST: redis
   SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+  # Public Google OAuth client id used to validate Google ID token audience.
+  # Replace this placeholder with the real client id before enabling Google sign-in.
+  GOOGLE_OIDC_CLIENT_ID: replace-with-google-client-id.apps.googleusercontent.com
   JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
   # Tell Spring Boot to auto-create Quartz scheduler tables on startup.
   SPRING_QUARTZ_JDBC_INITIALIZE_SCHEMA: always

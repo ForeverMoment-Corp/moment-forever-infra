@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard
+  namespace: kubernetes-dashboard
+  annotations:
+    # Dashboard's own Service only ever serves HTTPS (self-signed, auto-generated
+    # cert) on port 443/targetPort 8443, so nginx must talk HTTPS to the backend
+    # even though there is no public TLS cert on the ingress side yet.
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # No public TLS certificate is configured in this dev setup yet.
+    # Keep browser->ingress traffic on HTTP for now and add TLS later when a real
+    # domain/certificate is available.
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: dashboard.15.134.55.225.nip.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubernetes-dashboard
+                port:
+                  number: 443

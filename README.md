@@ -35,6 +35,9 @@ moment-forever-infra/
   clusters/
     dev/
       namespace.yaml
+      argocd/
+        kustomization.yaml
+        ingress.yaml
       platform/
         kustomization.yaml
         deployment.yaml
@@ -88,6 +91,26 @@ This is the clean CI->CD handoff:
 
 ---
 
+## Current dev ingress hosts
+
+For the current single-EC2 dev setup that uses Elastic IP `15.134.55.225`, the repo now exposes:
+
+- app gateway: `http://api.15.134.55.225.nip.io`
+- Argo CD UI: `http://argocd.15.134.55.225.nip.io`
+- Kubernetes Dashboard: `http://dashboard.15.134.55.225.nip.io`
+
+These use `nip.io` so you can test host-based ingress without buying a domain.
+
+> **Dashboard access is full cluster-admin by explicit choice.** The `admin-user`
+> ServiceAccount in `clusters/dev/dashboard/admin-user.yaml` is bound to the
+> built-in `cluster-admin` ClusterRole, and the Dashboard is reachable from the
+> public internet over plain HTTP. Anyone with the bearer token has complete
+> control of the cluster. Get a login token with:
+> `kubectl -n kubernetes-dashboard create token admin-user`
+> Treat that token like a root password; do not commit it or share it outside the team.
+
+---
+
 ## Important notes
 
 - No deployment commands are kept in application CI workflows.
@@ -102,5 +125,7 @@ This is the clean CI->CD handoff:
 - `doc/FILE-BY-FILE-EXPLANATION.md`
 - `doc/ARGOCD-KUBERNETES-BASICS.md`
 - `doc/LOCAL-CD-SETUP-GUIDE.md`
+- `doc/CD-OPERATIONS-RUNBOOK.md` (current real setup, credentials, and troubleshooting)
+- `doc/EC2-K3S-BOOTSTRAP-GUIDE.md` (when to run bootstrap, from where, what each script does, and recovery steps)
 - `doc/DEVOPS-TERMINOLOGY-GLOSSARY.md`
 - `doc/KUBERNETES-ARGOCD-DEEP-DIVE-RUNBOOK.md` (in-depth commands + debugging)

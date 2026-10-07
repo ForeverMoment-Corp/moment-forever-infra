@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-ui
+  namespace: argocd
+  annotations:
+    # Sync early so the operator UI becomes available before app changes depend on it.
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: moment-forever
+  source:
+    repoURL: https://github.com/ForeverMoment-Corp/moment-forever-infra.git
+    targetRevision: main
+    path: clusters/dev/argocd
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

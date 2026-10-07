@@ -1,0 +1,28 @@
+# Full admin access for the Dashboard login, by explicit user decision.
+#
+# SECURITY WARNING: this ClusterRoleBinding grants the "admin-user" ServiceAccount
+# the built-in "cluster-admin" ClusterRole, i.e. unrestricted read/write access to
+# every resource in every namespace (including Secrets). Anyone who obtains the
+# bearer token below can fully control the cluster. This is intentionally chosen
+# for a single dev/test EC2 box; do NOT reuse this pattern as-is for a shared or
+# production cluster without switching to a scoped Role/RoleBinding instead.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: admin-user
+  namespace: kubernetes-dashboard
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: admin-user
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+  - kind: ServiceAccount
+    name: admin-user
+    namespace: kubernetes-dashboard

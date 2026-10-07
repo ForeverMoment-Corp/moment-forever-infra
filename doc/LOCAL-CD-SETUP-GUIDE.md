@@ -2,6 +2,14 @@
 
 This guide helps you run CD locally for learning.
 
+It also maps those steps to the **current real dev setup** used in this project:
+
+- single EC2 machine
+- one Kubernetes cluster
+- Argo CD installed manually
+- Argo CD Image Updater installed manually
+- application delivery automated through GitHub Actions + Image Updater + Argo CD
+
 You can use either:
 
 1. **Docker Desktop Kubernetes** (easiest on Windows), or
@@ -67,6 +75,10 @@ Open:
 
 - https://localhost:8085
 
+For the current EC2 dev setup, the Argo UI ingress host is:
+
+- `http://argocd.15.134.55.225.nip.io`
+
 Get initial admin password:
 
 ```powershell
@@ -131,6 +143,8 @@ Because setup differs by security model, keep these as placeholders in local set
 
 - Docker registry credential secret for updater
 - Git credential secret for updater write-back
+
+For the current project, this is no longer only optional theory—the live dev flow depends on it for automatic image promotion from Docker Hub into the infra repo.
 
 ---
 
@@ -227,3 +241,11 @@ kubectl logs -n argocd deploy/argocd-image-updater --tail=200
 
 Use these before guessing.
 
+---
+
+## 13) Current project-specific follow-up docs
+
+After reading this local guide, use these repo-specific documents:
+
+- `doc/CD-OPERATIONS-RUNBOOK.md` for the current manual-vs-automated setup, credentials, and troubleshooting order
+- `doc/KUBERNETES-ARGOCD-DEEP-DIVE-RUNBOOK.md` for deeper commands and failure analysis

@@ -15,16 +15,25 @@ spec:
   # destinations controls where apps can deploy.
   # argocd namespace: root-app creates child Application objects here.
   # moment-forever-dev: where actual service pods are deployed.
+  # kubernetes-dashboard: Kubernetes Dashboard UI and its admin-user ServiceAccount.
   destinations:
     - namespace: moment-forever-dev
       server: https://kubernetes.default.svc
     - namespace: argocd
       server: https://kubernetes.default.svc
+    - namespace: kubernetes-dashboard
+      server: https://kubernetes.default.svc
 
   # clusterResourceWhitelist allows cluster-scoped objects if needed.
+  # ClusterRole/ClusterRoleBinding are required by the Kubernetes Dashboard
+  # manifests and by the admin-user cluster-admin binding.
   clusterResourceWhitelist:
     - group: ""
       kind: Namespace
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
 
   # namespaceResourceWhitelist allows namespaced resources managed by this project.
   namespaceResourceWhitelist:
@@ -40,6 +49,12 @@ spec:
       kind: Secret
     - group: ""
       kind: PersistentVolumeClaim
+    - group: ""
+      kind: ServiceAccount
+    - group: rbac.authorization.k8s.io
+      kind: Role
+    - group: rbac.authorization.k8s.io
+      kind: RoleBinding
     - group: argoproj.io
       kind: Application
     - group: networking.k8s.io

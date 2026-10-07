@@ -8,7 +8,7 @@ metadata:
 spec:
   project: moment-forever
   source:
-    repoURL: https://github.com/ForeverMoment-Corp/moment-forever-infra
+    repoURL: https://github.com/ForeverMoment-Corp/moment-forever-infra.git
     targetRevision: main
     path: clusters/dev/ingress
   destination:
@@ -18,3 +18,5 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

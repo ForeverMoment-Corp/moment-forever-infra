@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dashboard
+  namespace: argocd
+  annotations:
+    # Sync early alongside other operator-visibility tooling (Argo CD UI, ingress).
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: moment-forever
+  source:
+    repoURL: https://github.com/ForeverMoment-Corp/moment-forever-infra.git
+    targetRevision: main
+    path: clusters/dev/dashboard
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kubernetes-dashboard
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

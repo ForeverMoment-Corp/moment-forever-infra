@@ -37,6 +37,9 @@ This repository is a **GitOps CD repository**.
 | `booking.yaml` | Same pattern for booking service. |
 | `payment.yaml` | Same pattern for payment service. |
 | `gateway.yaml` | Same pattern for gateway service. |
+| `ingress.yaml` | Tells Argo to deploy the app ingress resources from `clusters/dev/ingress`. |
+| `argocd-ui.yaml` | Tells Argo to deploy the Argo CD UI ingress from `clusters/dev/argocd`. |
+| `dashboard.yaml` | Tells Argo to deploy the Kubernetes Dashboard (manifest + admin ServiceAccount + ingress) from `clusters/dev/dashboard`. |
 
 ---
 
@@ -45,6 +48,11 @@ This repository is a **GitOps CD repository**.
 | File | Why it exists |
 |---|---|
 | `clusters/dev/namespace.yaml` | Creates namespace `moment-forever-dev` for all dev services. |
+| `clusters/dev/ingress/ingress.yaml` | Exposes the app gateway on the dev host `api.15.134.55.225.nip.io`. |
+| `clusters/dev/argocd/ingress.yaml` | Exposes the Argo CD UI on the dev host `argocd.15.134.55.225.nip.io`. |
+| `clusters/dev/dashboard/recommended.yaml` | Vendored upstream Kubernetes Dashboard v2.7.0 manifest (namespace, Deployment, Service, RBAC for the Dashboard's own service account). |
+| `clusters/dev/dashboard/admin-user.yaml` | Creates the `admin-user` ServiceAccount and binds it to `cluster-admin` so the Dashboard login has full cluster access (explicit user choice — see security warning in `README.md`). |
+| `clusters/dev/dashboard/ingress.yaml` | Exposes the Dashboard on the dev host `dashboard.15.134.55.225.nip.io`, proxying HTTPS to the Dashboard's self-signed backend. |
 
 Each service folder has 3 files:
 
@@ -61,6 +69,9 @@ Same structure exists for:
 - `clusters/dev/booking/`
 - `clusters/dev/payment/`
 - `clusters/dev/gateway/`
+- `clusters/dev/ingress/`
+- `clusters/dev/argocd/`
+- `clusters/dev/dashboard/` (same idea, but 3 files: `recommended.yaml`, `admin-user.yaml`, `ingress.yaml` — no kustomize image-tag management since Dashboard isn't built by this project's CI)
 
 ---
 
@@ -159,4 +170,3 @@ These values are expected to differ between local/dev/stage/prod:
 4. Keep CI and CD responsibilities separate:
    - CI builds artifacts
    - CD declares/deploys artifacts
-
