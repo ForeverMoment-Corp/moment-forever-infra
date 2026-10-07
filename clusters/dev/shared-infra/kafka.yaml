@@ -75,9 +75,17 @@ metadata:
   labels:
     app: kafka
 spec:
+  # Headless: Kafka's own KRaft controller (CONTROLLER_QUORUM_VOTERS=1@kafka:9093)
+  # must be able to reach this pod via the "kafka" service even before the pod
+  # is marked Ready, otherwise the broker can never register with itself.
+  clusterIP: None
+  publishNotReadyAddresses: true
   selector:
     app: kafka
   ports:
     - name: kafka
       port: 29092
       targetPort: 29092
+    - name: controller
+      port: 9093
+      targetPort: 9093
