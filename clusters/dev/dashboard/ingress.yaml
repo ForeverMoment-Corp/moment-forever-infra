@@ -5,15 +5,21 @@ metadata:
   namespace: kubernetes-dashboard
   annotations:
     # Dashboard's own Service only ever serves HTTPS (self-signed, auto-generated
-    # cert) on port 443/targetPort 8443, so nginx must talk HTTPS to the backend
-    # even though there is no public TLS cert on the ingress side yet.
+    # cert) on port 443/targetPort 8443, so nginx must talk HTTPS to the backend.
+    # nginx does not validate the backend cert, so the self-signed backend cert
+    # is fine here; the browser only ever sees the Let's Encrypt cert below.
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
-    # No public TLS certificate is configured in this dev setup yet.
-    # Keep browser->ingress traffic on HTTP for now and add TLS later when a real
-    # domain/certificate is available.
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # cert-manager watches this annotation and issues/renews a real Let's
+    # Encrypt certificate into the secret named below (ingress-shim). A real,
+    # browser-trusted HTTPS connection is required for the Dashboard login
+    # token flow to work when accessed from somewhere other than localhost.
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - dashboard.15.134.55.225.nip.io
+      secretName: kubernetes-dashboard-tls
   rules:
     - host: dashboard.15.134.55.225.nip.io
       http:

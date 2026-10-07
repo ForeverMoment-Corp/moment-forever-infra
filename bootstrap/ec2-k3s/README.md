@@ -15,11 +15,12 @@ This folder contains the **actual EC2 bootstrap scripts** for the current recomm
 1. host prerequisites
 2. k3s with Traefik disabled
 3. NGINX Ingress Controller
-4. Argo CD
-5. Argo CD repository access for the infra repo
-6. Argo CD Image Updater
-7. Docker Hub registry credentials for Image Updater
-8. the Moment Forever root Argo application
+4. cert-manager + Let's Encrypt `ClusterIssuer`s (real HTTPS certs)
+5. Argo CD
+6. Argo CD repository access for the infra repo
+7. Argo CD Image Updater
+8. Docker Hub registry credentials for Image Updater
+9. the Moment Forever root Argo application
 
 After that, Argo CD manages the rest from Git.
 
@@ -51,14 +52,15 @@ Required secrets:
 - `GITHUB_TOKEN`
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN`
+- `LETSENCRYPT_EMAIL` (real email; used only for Let's Encrypt expiry/renewal notices)
 
 ### 4. Open the EC2 security group
 
 At minimum:
 
 - TCP 22 for SSH
-- TCP 80 for app ingress and Argo UI
-- TCP 443 for future TLS or HTTPS ingress
+- TCP 80 for app ingress, Argo UI, and ACME HTTP-01 certificate validation
+- TCP 443 for HTTPS ingress (required — cert-manager issues real Let's Encrypt certs)
 
 If you want remote `kubectl` to talk to the k3s API later, also open:
 
@@ -82,6 +84,7 @@ Or run step by step:
 ./00-prepare-host.sh
 ./10-install-k3s.sh
 ./20-install-nginx-ingress.sh
+./25-install-cert-manager.sh
 ./30-install-argocd.sh
 ./40-configure-argocd-repo-access.sh
 ./50-install-image-updater.sh
@@ -98,9 +101,11 @@ For a more detailed operator guide, read:
 
 With the current Elastic IP `15.134.55.225`:
 
-- app: `http://api.15.134.55.225.nip.io`
-- Argo CD: `http://argocd.15.134.55.225.nip.io`
-- Kubernetes Dashboard: `http://dashboard.15.134.55.225.nip.io` (get a login token with `kubectl -n kubernetes-dashboard create token admin-user`; that token is cluster-admin, treat it like a root password)
+- app: `https://api.15.134.55.225.nip.io`
+- Argo CD: `https://argocd.15.134.55.225.nip.io`
+- Kubernetes Dashboard: `https://dashboard.15.134.55.225.nip.io` (get a login token with `kubectl -n kubernetes-dashboard create token admin-user`; that token is cluster-admin, treat it like a root password)
+
+All three get a real Let's Encrypt certificate issued by cert-manager — no browser security warnings, no insecure-login workarounds needed.
 
 ---
 

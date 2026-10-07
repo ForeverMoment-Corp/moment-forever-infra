@@ -39,6 +39,7 @@ load_env() {
   : "${INGRESS_NGINX_MANIFEST_URL:=https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.3/deploy/static/provider/cloud/deploy.yaml}"
   : "${ARGOCD_INSTALL_URL:=https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml}"
   : "${ARGOCD_IMAGE_UPDATER_INSTALL_URL:=https://raw.githubusercontent.com/argoproj-labs/argocd-image-updater/stable/config/install.yaml}"
+  : "${CERT_MANAGER_INSTALL_URL:=https://github.com/cert-manager/cert-manager/releases/download/v1.21.2/cert-manager.yaml}"
   : "${PUBLIC_IP:=}"
   : "${APP_HOST:=}"
   : "${ARGOCD_HOST:=}"

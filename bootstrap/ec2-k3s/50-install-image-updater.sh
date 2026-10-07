@@ -13,9 +13,11 @@ require_env DOCKERHUB_USERNAME DOCKERHUB_TOKEN
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
 log "Installing Argo CD Image Updater"
-kubectl apply -n argocd -f "${ARGOCD_IMAGE_UPDATER_INSTALL_URL}"
+kubectl apply -n argocd --server-side --force-conflicts -f "${ARGOCD_IMAGE_UPDATER_INSTALL_URL}"
 
-wait_for_deployment argocd argocd-image-updater 600s
+# Upstream renamed the Deployment from "argocd-image-updater" to
+# "argocd-image-updater-controller"; wait on the current name.
+wait_for_deployment argocd argocd-image-updater-controller 600s
 
 log "Creating Docker Hub registry secret for Image Updater"
 kubectl create secret docker-registry dockerhub-secret \
@@ -44,8 +46,8 @@ data:
       credentials: pullsecret:argocd/dockerhub-secret
 EOF
 
-kubectl rollout restart deployment/argocd-image-updater -n argocd
-wait_for_deployment argocd argocd-image-updater 600s
+kubectl rollout restart deployment/argocd-image-updater-controller -n argocd
+wait_for_deployment argocd argocd-image-updater-controller 600s
 
 log "Argo CD Image Updater installation finished"
 log "It will reuse the Argo CD repository credentials for Git write-back because your Application manifests use write-back method 'git'."

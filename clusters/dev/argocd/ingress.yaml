@@ -4,12 +4,15 @@ metadata:
   name: argocd-server
   namespace: argocd
   annotations:
-    # No public TLS certificate is configured in this dev setup yet.
-    # Keep browser->ingress traffic on HTTP for now and add TLS later when a real
-    # domain/certificate is available.
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    # cert-manager watches this annotation and issues/renews a real Let's
+    # Encrypt certificate into the secret named below (ingress-shim).
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - argocd.15.134.55.225.nip.io
+      secretName: argocd-server-tls
   rules:
     - host: argocd.15.134.55.225.nip.io
       http:
