@@ -1,0 +1,12 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: forever-moment-updater
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: "moment-forever-*"
+      useAnnotations: true
+      writeBackConfig:
+        method: "git:secret:argocd/argocd-image-updater-writeback-key"
+        gitBranch: "main"
