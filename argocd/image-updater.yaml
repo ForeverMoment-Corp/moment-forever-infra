@@ -9,4 +9,5 @@ spec:
       useAnnotations: true
       writeBackConfig:
         method: "git:secret:argocd/argocd-image-updater-writeback-key"
-        gitBranch: "main"
+        gitConfig:
+          branch: "main"
