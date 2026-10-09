@@ -12,3 +12,8 @@ data:
   JAVA_TOOL_OPTIONS: -Duser.timezone=Asia/Kolkata
   MANAGEMENT_HEALTH_KAFKA_ENABLED: "false"
   SPRING_QUARTZ_JDBC_INITIALIZE_SCHEMA: always
+  RAZORPAY_KEY_ID: "rzp_test_TlMCDkiCp0BTPT"
+  RAZORPAY_KEY_SECRET: "HPJlffY11VB9B0fynFlIcrNq"
+  RAZORPAY_WEBHOOK_SECRET: "M@Nishind123"
+  # RAZORPAY_CALLBACK_URL: "http://localhost:8082/payment/success"
+
