@@ -1,0 +1,28 @@
+name: Mirror to GitLab
+
+# One-way mirror: every push to main is force-pushed to the GitLab twin
+# (same repo name under the GITLAB_NAMESPACE group/namespace).
+# Uses the GITLAB_TOKEN / GITLAB_NAMESPACE organization secrets.
+# Never commit directly on the GitLab side - it will be overwritten.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch: # manual "just sync it" button (Actions tab)
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history so the first run backfills everything
+      - name: Push main to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}" # same name on both sides
+          TARGET="https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_NAMESPACE}/${REPO_NAME}.git"
+          git remote add gitlab "$TARGET" 2>/dev/null || git remote set-url gitlab "$TARGET"
+          git push gitlab main --force
