@@ -11,4 +11,4 @@ resources:
 # Keep `name` exactly equal to image name used in deployment manifests.
 images:
 - name: groote123/moment-forever-booking
-  newTag: 9983b346061e0e4cc7fa47e176e601dabcd2295a
+  newTag: 03a77ec51b20465abf40e21f5d077f788837b59b
