@@ -37,12 +37,14 @@ spec:
             httpGet:
               path: /booking/actuator/health
               port: 8082
-            initialDelaySeconds: 20
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
             periodSeconds: 10
           livenessProbe:
             # Liveness says "is this pod alive, or should Kubernetes restart it?"
             httpGet:
               path: /booking/actuator/health
               port: 8082
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 20
+            timeoutSeconds: 10
